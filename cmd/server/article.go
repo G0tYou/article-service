@@ -11,6 +11,7 @@ import (
 	"article/pkg/delivery/http/rest"
 	"article/pkg/listing"
 	"article/pkg/repository/mysql"
+	"article/pkg/repository/redis"
 )
 
 func main() {
@@ -36,9 +37,15 @@ func run(goEnv string) {
 		log.Fatal("Error: Database failed to connect (", config.My.DSN, ") - ", err)
 	}
 
+	// MySQL setup
+	redis, err := redis.NewStorage(config.Rd)
+	if err != nil {
+		log.Fatal("Error: Redis failed to connect (", config.Rd.Addr, ") - ", err)
+	}
+
 	// Handler setup
-	adder := adding.NewService(mysql)
-	lister := listing.NewService(mysql)
+	adder := adding.NewService(mysql, redis)
+	lister := listing.NewService(mysql, redis)
 
 	r := rest.Handler(adder, lister)
 

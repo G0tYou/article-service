@@ -5,6 +5,8 @@ import (
 	"article/pkg/listing"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/go-redis/redis/v8"
@@ -32,12 +34,41 @@ func NewStorage(cfgdb config.Redis) (*Storage, error) {
 	return s, nil
 }
 
-func (s *Storage) CreateArticle(ctx context.Context, lfgar listing.FilterGetArticle) {
-	cg, _ := json.Marshal(lfgar)
+func (s *Storage) CreateArticle(ctx context.Context, lars []listing.Article, lfgar listing.FilterGetArticle) {
+	if lfgar.AuthorName == "" {
+		lfgar.AuthorName = "-"
+	}
 
-	s.db.Set(ctx, config.RedisKeyArticle, cg, config.RedisTTLOneHour)
+	if lfgar.Search == "" {
+		lfgar.Search = "-"
+	}
+
+	b, _ := json.Marshal(lars)
+
+	s.db.Set(ctx, fmt.Sprintf(config.RedisKeyArticle, lfgar.AuthorName, lfgar.Search, lfgar.Limit, lfgar.Page), b, config.RedisTTLOneHour)
 }
 
-func (s *Storage) DeleteArticle(ctx context.Context, aid int) {
+func (s *Storage) DeleteArticle(ctx context.Context) {
 	s.db.FlushDB(ctx)
+}
+
+func (s *Storage) ReadArticles(ctx context.Context, lfgar listing.FilterGetArticle) ([]listing.Article, error) {
+	var lars []listing.Article
+
+	if lfgar.AuthorName == "" {
+		lfgar.AuthorName = "-"
+	}
+
+	if lfgar.Search == "" {
+		lfgar.Search = "-"
+	}
+
+	res := s.db.Get(ctx, fmt.Sprintf(config.RedisKeyArticle, lfgar.AuthorName, lfgar.Search, lfgar.Limit, lfgar.Page))
+	json.Unmarshal([]byte(res.Val()), &lars)
+
+	if res.Val() == "" {
+		return lars, errors.New(config.RedisErrKeyDoesNotExist)
+	}
+
+	return lars, nil
 }
