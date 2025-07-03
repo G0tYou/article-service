@@ -9,6 +9,7 @@ import (
 	"article/config"
 	"article/pkg/adding"
 	"article/pkg/delivery/http/rest"
+	"article/pkg/listing"
 	"article/pkg/repository/mysql"
 )
 
@@ -37,8 +38,9 @@ func run(goEnv string) {
 
 	// Handler setup
 	adder := adding.NewService(mysql)
+	lister := listing.NewService(mysql)
 
-	r := rest.Handler(adder)
+	r := rest.Handler(adder, lister)
 
 	host := config.Glb.Serv.Host
 
