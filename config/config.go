@@ -9,11 +9,17 @@ import (
 
 type Global struct {
 	My   MySQL  `yaml:"mysql"`
+	Rd   Redis  `yaml:"redis"`
 	Serv Server `yaml:"server"`
 }
 
 type MySQL struct {
 	DSN string `yaml:"dsn"`
+}
+
+type Redis struct {
+	Addr string `yaml:"addr"`
+	Db   int    `yaml:"db"`
 }
 
 type Server struct {
@@ -24,6 +30,7 @@ type Server struct {
 var (
 	Glb  Global
 	My   MySQL
+	Rd   Redis
 	Serv Server
 )
 
@@ -42,6 +49,7 @@ func Load(file string) error {
 	}
 
 	My = Glb.My
+	Rd = Glb.Rd
 	Serv = Glb.Serv
 
 	return nil

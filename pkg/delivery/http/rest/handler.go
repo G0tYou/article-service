@@ -21,6 +21,7 @@ func Handler(as adding.Service, ls listing.Service) http.Handler {
 	// Adding
 	r.HandleFunc("/article", addArticle(as)).Methods("POST")
 
+	// Listing
 	r.HandleFunc("/article", getArticle(ls)).Methods("GET")
 
 	return r

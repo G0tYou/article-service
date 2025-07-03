@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"strings"
 
 	"article/config"
 	"article/pkg/adding"
@@ -53,16 +54,35 @@ func (s *Storage) CreateArticle(ctx context.Context, ar adding.Article) (int, er
 }
 
 func (s *Storage) ReadArticles(ctx context.Context, lfga listing.FilterGetArticle) ([]listing.Article, error) {
-	var lars []listing.Article
-	var condition string
+	var (
+		args      []any
+		condition []string
+		lars      []listing.Article
+		query     strings.Builder
+	)
 
-	if lfga.Search != "" {
-		condition = "AND MATCH(title, body) AGAINST('" + lfga.Search + "')"
+	query.WriteString("SELECT ar.id, au.id, au.name, ar.title, ar.body FROM article ar LEFT JOIN author au ON ar.author_id = au.id")
+
+	if lfga.AuthorName != "" {
+		condition = append(condition, "au.name LIKE CONCAT('%', ?, '%')")
+		args = append(args, lfga.AuthorName)
 	}
 
-	q := "SELECT ar.id, au.id, au.name, ar.title, ar.body FROM article ar LEFT JOIN author au ON ar.author_id = au.id WHERE  au.name LIKE CONCAT('%', ?, '%') " + condition + " ORDER BY ar.created_at DESC LIMIT ? OFFSET  ?"
+	if lfga.Search != "" {
+		condition = append(condition, "MATCH(title, body) AGAINST(?)")
+		args = append(args, lfga.Search)
+	}
 
-	res, err := s.db.QueryContext(ctx, q, lfga.AuthorName, lfga.Limit, lfga.Page)
+	if len(condition) > 1 {
+		query.WriteString(" WHERE " + strings.Join(condition, " AND "))
+	} else if len(condition) > 0 {
+		query.WriteString(" WHERE " + strings.Join(condition, ""))
+	}
+
+	query.WriteString(" ORDER BY ar.created_at DESC LIMIT ? OFFSET  ?")
+	args = append(args, lfga.Limit, lfga.Page)
+
+	res, err := s.db.QueryContext(ctx, query.String(), args...)
 	if err != nil {
 		return lars, err
 	}
