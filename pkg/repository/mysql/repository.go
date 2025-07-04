@@ -91,15 +91,11 @@ func (s *Storage) ReadArticles(ctx context.Context, lfga listing.FilterGetArticl
 	for res.Next() {
 		var lar listing.Article
 
-		if err := res.Scan(&lar.ID, &lar.Author.ID, &lar.Author.Name, &lar.Title, &lar.Title); err != nil {
+		if err := res.Scan(&lar.ID, &lar.Author.ID, &lar.Author.Name, &lar.Title, &lar.Body); err != nil {
 			return lars, err
 		}
 
 		lars = append(lars, lar)
-	}
-
-	if err := res.Err(); err != nil {
-		return lars, err
 	}
 
 	return lars, nil
