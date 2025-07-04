@@ -51,6 +51,6 @@ func run(goEnv string) {
 
 	host := config.Glb.Serv.Host
 
-	log.Println("Server Running on", goEnv, "environment, (REST APIs) listening on", host+":"+config.Serv.Port)
+	log.Println("Server Running on", goEnv, "environment, listening on", host+":"+config.Serv.Port)
 	log.Fatal("Error: Server failed to run - ", http.ListenAndServe(host+":"+config.Serv.Port, r))
 }
