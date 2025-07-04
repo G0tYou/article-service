@@ -89,6 +89,7 @@ func Test_service_AddArticle(t *testing.T) {
 			tt.setupMock(rmym, rrdm)
 
 			s := service{rmy: rmym, rre: rrdm}
+
 			got, err := s.AddArticle(ctx, tt.a)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("service.AddArticle() error = %v, wantErr %v", err, tt.wantErr)
