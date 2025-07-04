@@ -4,7 +4,6 @@ import (
 	"article/config"
 	"article/pkg/listing"
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
@@ -32,7 +31,6 @@ func TestNewStorage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := NewStorage(tt.cfgdb)
-			fmt.Println(tt.cfgdb)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewStorage() error = %v, wantErr %v", err, tt.wantErr)
 				return
